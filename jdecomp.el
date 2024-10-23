@@ -6,7 +6,7 @@
 ;; Keywords: decompile, java, languages, tools
 ;; Package-Requires: ((emacs "24.5"))
 ;; URL: https://github.com/xiongtx/jdecomp
-;; Version: 0.2.0
+;; Version: 0.2.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -62,6 +62,11 @@
   :group 'jdecomp
   :options '(cfr fernflower procyon)
   :type '(alist :key-type symbol :value-type (repeat string)))
+
+(defcustom jdecomp-java-program "java"
+  "Path to the Java executable."
+  :group 'jdecomp
+  :type 'string)
 
 
 ;;;; Utilities
@@ -201,7 +206,7 @@ applicable."
   (jdecomp--ensure-decompiler 'cfr)
   (with-output-to-string
     (let ((classpath (or jar (file-name-directory file) default-directory)))
-      (apply #'call-process "java" nil standard-output nil
+      (apply #'call-process jdecomp-java-program nil standard-output nil
              `("-jar" ,(expand-file-name (jdecomp--decompiler-path 'cfr))
                "--extraclasspath" ,classpath
                ,@(jdecomp--decompiler-options 'cfr)
@@ -222,7 +227,7 @@ was extracted from a JAR with `jdecomp--extract-to-file'."
                           (jdecomp--make-temp-file (concat "jdecomp" (file-name-sans-extension file)) t))))
       ;; The java-decompiler.jar is not executable
       ;; See: http://stackoverflow.com/a/39868281/864684
-      (apply #'call-process "java" nil nil nil
+      (apply #'call-process jdecomp-java-program nil nil nil
              `("-cp" ,(expand-file-name (jdecomp--decompiler-path 'fernflower))
                "org.jetbrains.java.decompiler.main.decompiler.ConsoleDecompiler"
                "-cp" ,classpath
@@ -262,7 +267,7 @@ Optional parameter EXTRACTED-P, when non-nil, indicates that FILE
 was extracted from a JAR with `jdecomp--extract-to-file'."
   (jdecomp--ensure-decompiler 'procyon)
   (with-output-to-string
-    (apply #'call-process "java" nil standard-output nil
+    (apply #'call-process jdecomp-java-program nil standard-output nil
            `("-jar" ,(expand-file-name (jdecomp--decompiler-path 'procyon))
              ,@(jdecomp--decompiler-options 'procyon)
              ,file))))
