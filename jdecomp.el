@@ -224,18 +224,23 @@ was extracted from a JAR with `jdecomp--extract-to-file'."
     (let* ((classpath (or (file-name-directory file) default-directory))
            (destination (if extracted-p
                             (file-name-directory file)
-                          (jdecomp--make-temp-file (concat "jdecomp" (file-name-sans-extension file)) t))))
-      ;; The java-decompiler.jar is not executable
-      ;; See: http://stackoverflow.com/a/39868281/864684
-      (apply #'call-process jdecomp-java-program nil nil nil
-             `("-cp" ,(expand-file-name (jdecomp--decompiler-path 'fernflower))
-               "org.jetbrains.java.decompiler.main.decompiler.ConsoleDecompiler"
-               "-cp" ,classpath
-               ,@(jdecomp--decompiler-options 'fernflower)
-               ,file
-               ,destination))
-      (insert-file-contents (cl-first (jdecomp--java-files destination)))
-      (buffer-string))))
+                          (jdecomp--make-temp-file (concat "jdecomp" (file-name-sans-extension file)) t)))
+           (process-out (with-temp-buffer
+                          ;; The java-decompiler.jar is not executable
+                          ;; See: http://stackoverflow.com/a/39868281/864684
+                          (apply #'call-process jdecomp-java-program nil (current-buffer) nil
+                                 `("-cp" ,(expand-file-name (jdecomp--decompiler-path 'fernflower))
+                                   "org.jetbrains.java.decompiler.main.decompiler.ConsoleDecompiler"
+                                   "-cp" ,classpath
+                                   ,@(jdecomp--decompiler-options 'fernflower)
+                                   ,file
+                                   ,destination))
+                          (buffer-string))))
+      (if-let (decompiled-file (cl-first (jdecomp--java-files destination)))
+          (progn
+            (insert-file-contents decompiled-file)
+            (buffer-string))
+        (error "Failed to decompile %s\n%s" file process-out)))))
 
 (defun jdecomp--fernflower-decompile-file-in-jar (file jar)
   "Decompile FILE with Fernflower and return result as string.
