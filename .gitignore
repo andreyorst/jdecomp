@@ -1,2 +1,5 @@
 # Include .class files as test sources
 !*.class
+*-autoloads.el
+*-pkg.el
+*.elc

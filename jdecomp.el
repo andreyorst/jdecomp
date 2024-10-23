@@ -47,9 +47,9 @@
   "Type of Java decompiler to use."
   :group 'jdecomp
   :type '(radio
-          (const :tag "CFR" 'cfr)
-          (const :tag "Fernflower" 'fernflower)
-          (const :tag "Procyon" 'procyon)))
+          (const :tag "CFR" cfr)
+          (const :tag "Fernflower" fernflower)
+          (const :tag "Procyon" procyon)))
 
 (defcustom jdecomp-decompiler-paths nil
   "Alist of Java decompiler types and their paths."
@@ -178,10 +178,10 @@ Optional parameter DECOMPILER-TYPE defaults to
 `jdecomp-decompiler-type'."
   (condition-case nil
       (cl-ecase decompiler-type
-        ('cfr #'jdecomp--cfr-command)
-        ('fernflower #'jdecomp--fernflower-command)
-        ('procyon #'jdecomp--procyon-command))
-    (error (user-error "%s is not a known decompiler" decompiler-type))))
+        (cfr #'jdecomp--cfr-command)
+        (fernflower #'jdecomp--fernflower-command)
+        (procyon #'jdecomp--procyon-command))
+    (user-error "%s is not a known decompiler" decompiler-type)))
 
 (cl-defun jdecomp--ensure-decompiler (&optional (decompiler-type jdecomp-decompiler-type))
   "Ensure that the decompiler for DECOMPILER-TYPE is available.
@@ -190,10 +190,10 @@ Optional parameter DECOMPILER-TYPE defaults to
 `jdecomp-decompiler-type'."
   (unless (condition-case nil
               (cl-ecase decompiler-type
-                ('cfr (jdecomp--jar-p (jdecomp--decompiler-path 'cfr)))
-                ('fernflower (jdecomp--jar-p (jdecomp--decompiler-path 'fernflower)))
-                ('procyon (jdecomp--jar-p (jdecomp--decompiler-path 'procyon))))
-            (error (user-error "%s is not a known decompiler" decompiler-type)))
+                (cfr (jdecomp--jar-p (jdecomp--decompiler-path 'cfr)))
+                (fernflower (jdecomp--jar-p (jdecomp--decompiler-path 'fernflower)))
+                (procyon (jdecomp--jar-p (jdecomp--decompiler-path 'procyon))))
+            (user-error "%s is not a known decompiler" decompiler-type))
     (user-error "%s decompiler is not available" decompiler-type)))
 
 (defun jdecomp--cfr-command (file &optional jar)
@@ -342,7 +342,7 @@ Optional parameter JAR is the name of the JAR archive FILE is
 in."
   ;; Check that FILE is a class file
   (unless (jdecomp--classfile-p file)
-    (user-error (format "%s is not a Java class file" file)))
+    (user-error "%s is not a Java class file" file))
 
   (let ((result (funcall (jdecomp--decompile-command) file jar))
         (buf (get-buffer-create (jdecomp--decompiled-buffer-name file))))
